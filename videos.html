@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الفيديوهات | Videos — Feek El Hayah</title>
+<meta name="description" content="كورال فيك الحياة — Feek El Hayah Choir, Alexandria">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<section class="page-hero"><div class="container"><h1 data-i18n="videos_title"></h1></div></section>
+<section class="section">
+  <div class="container">
+    <div class="grid grid-3" id="vids"></div>
+    <div id="channel" style="margin-top:50px"></div>
+  </div>
+</section>
+<footer id="site-footer"></footer>
+<script src="assets/js/concert-utils.js"></script>
+<script>
+startPage(async (s) => {
+  const vids = await DB.list("videos", { order: "sort", asc: true });
+  document.getElementById("vids").innerHTML = vids.map(videoCard).join("");
+  if (s.youtube_channel_id) {
+    document.getElementById("channel").innerHTML = `
+      <div class="section-title"><h2>${t("channel_uploads")}</h2></div>
+      <div class="card video-card featured-video"><div class="video-frame"><iframe loading="lazy" src="https://www.youtube.com/embed/videoseries?list=UU${esc(s.youtube_channel_id.slice(2))}" allowfullscreen></iframe></div></div>
+      <p style="text-align:center;margin-top:20px"><a class="btn btn-primary" href="${esc(s.youtube)}" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i> ${t("visit_channel")}</a></p>`;
+  }
+});
+</script>
+</body>
+</html>

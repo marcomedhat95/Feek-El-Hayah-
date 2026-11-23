@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>كورال فيك الحياة | Feek El Hayah Choir</title>
+<meta name="description" content="كورال فيك الحياة — Feek El Hayah Choir, Alexandria">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<section class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-inner container">
+    <img class="hero-logo" src="assets/img/logo.png" alt="">
+    <h1 data-i18n="hero_title"></h1>
+    <p data-i18n="hero_sub"></p>
+    <div class="actions">
+      <a class="btn btn-gold" href="concerts.html"><i class="fa-solid fa-ticket"></i> <span data-i18n="btn_book"></span></a>
+      <a class="btn btn-outline" href="join.html"><i class="fa-solid fa-microphone-lines"></i> <span data-i18n="btn_join"></span></a>
+    </div>
+  </div>
+</section>
+
+<div class="container" id="nextWrap"></div>
+
+<section class="section">
+  <div class="container split">
+    <div>
+      <div class="section-title" style="text-align:start"><h2 data-i18n="about_title"></h2></div>
+      <p class="lead" id="aboutShort"></p>
+      <a class="btn btn-primary" href="about.html"><span data-i18n="btn_more"></span> <i class="fa-solid fa-arrow-left" id="moreArrow"></i></a>
+    </div>
+    <div class="grid grid-3" id="stats" style="grid-template-columns:repeat(3,1fr)"></div>
+  </div>
+</section>
+
+<section class="section alt" id="videosSec">
+  <div class="container">
+    <div class="section-title"><h2 data-i18n="latest_videos"></h2></div>
+    <div id="homeVideos"></div>
+    <p style="text-align:center;margin-top:24px"><a class="btn btn-primary" href="videos.html"><i class="fa-brands fa-youtube"></i> <span data-i18n="btn_watch"></span></a></p>
+  </div>
+</section>
+
+<section class="section" id="photosSec" hidden>
+  <div class="container">
+    <div class="section-title"><h2 data-i18n="latest_photos"></h2></div>
+    <div class="photo-grid" id="homePhotos"></div>
+    <p style="text-align:center;margin-top:20px"><a class="btn btn-light" href="gallery.html" data-i18n="gallery_title"></a></p>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="container">
+    <div class="section-title"><h2 data-i18n="listen_on"></h2></div>
+    <div class="listen" id="listen"></div>
+  </div>
+</section>
+
+<section class="section" style="background:linear-gradient(135deg,var(--plum-800),var(--plum-600));color:#fff;text-align:center">
+  <div class="container">
+    <h2 style="font-family:var(--display);font-size:2.2rem" data-i18n="join_title"></h2>
+    <p style="color:#e2d3f3" data-i18n="join_sub"></p>
+    <a class="btn btn-gold" href="join.html" data-i18n="btn_join"></a>
+  </div>
+</section>
+
+<footer id="site-footer"></footer>
+<script src="assets/js/concert-utils.js"></script>
+<script>
+startPage(async (s) => {
+  if (LANG === "en") document.getElementById("moreArrow").className = "fa-solid fa-arrow-right";
+  document.getElementById("aboutShort").textContent = (tf(s, "about").split("\n")[0]) || "";
+  document.getElementById("stats").innerHTML = [
+    ["fa-solid fa-calendar-check", s.since || "2010", "stat_since"],
+    ["fa-solid fa-church", s.churches || "", "stat_churches"],
+    ["fa-solid fa-hands-praying", "♪", "stat_service"]
+  ].map(([i, v, k]) => `<div class="card feature"><i class="${i}"></i><b>${esc(v)}</b><span>${t(k)}</span></div>`).join("");
+
+  // next concert
+  const concerts = await upcomingConcerts();
+  const c = concerts.find(x => x.status !== "cancelled");
+  if (c) {
+    if (c.poster_url) document.getElementById("heroBg").style.backgroundImage = `url('${c.poster_url}')`;
+    document.getElementById("nextWrap").innerHTML = `
+      <div class="card next-card">
+        <div class="poster">${c.poster_url ? `<img src="${esc(c.poster_url)}" alt="">` : `<img class="ph" src="assets/img/logo.png" alt="">`}</div>
+        <div class="body">
+          <span class="tag">${t("next_concert")}</span>
+          <h2 style="margin-top:10px;color:var(--plum-700)">${esc(tf(c, "title"))}</h2>
+          <div class="meta"><span><i class="fa-regular fa-calendar"></i>${fmtDate(c.date)}</span><span><i class="fa-solid fa-location-dot"></i>${esc(tf(c, "venue"))}</span></div>
+          <div class="countdown" id="cd"></div>
+          <a class="btn btn-primary" href="concerts.html#c-${c.id}"><i class="fa-solid fa-ticket"></i> ${t("btn_book")}</a>
+        </div>
+      </div>`;
+    startCountdown(document.getElementById("cd"), c.date);
+  }
+
+  // videos
+  const vids = await DB.list("videos", { order: "sort", asc: true });
+  const box = document.getElementById("homeVideos");
+  if (vids.length) {
+    box.className = "grid grid-3";
+    box.innerHTML = vids.slice(0, 3).map(v => videoCard(v)).join("");
+  } else if (s.youtube_channel_id) {
+    box.innerHTML = `<div class="card video-card featured-video"><div class="video-frame"><iframe loading="lazy" src="https://www.youtube.com/embed/videoseries?list=UU${esc(s.youtube_channel_id.slice(2))}" allowfullscreen></iframe></div></div>`;
+  }
+
+  // photos
+  const photos = await DB.list("photos", { order: "created_at", asc: false });
+  if (photos.length) {
+    document.getElementById("photosSec").hidden = false;
+    document.getElementById("homePhotos").innerHTML = photos.slice(0, 8).map(p => `<figure onclick="location.href='gallery.html'"><img loading="lazy" src="${esc(p.url)}" alt=""></figure>`).join("");
+  }
+
+  // listen on
+  document.getElementById("listen").innerHTML = [["spotify", "fa-brands fa-spotify", "Spotify"], ["anghami", "fa-solid fa-music", "Anghami"], ["soundcloud", "fa-brands fa-soundcloud", "SoundCloud"], ["youtube", "fa-brands fa-youtube", "YouTube"]]
+    .filter(x => s[x[0]]).map(([k, i, n]) => `<a href="${esc(s[k])}" target="_blank" rel="noopener"><i class="${i}"></i>${n}</a>`).join("");
+});
+</script>
+</body>
+</html>

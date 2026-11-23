@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الصور | Gallery — Feek El Hayah</title>
+<meta name="description" content="كورال فيك الحياة — Feek El Hayah Choir, Alexandria">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<section class="page-hero"><div class="container"><h1 data-i18n="gallery_title"></h1></div></section>
+<section class="section">
+  <div class="container">
+    <div class="album-tabs" id="tabs"></div>
+    <div class="photo-grid" id="grid"></div>
+  </div>
+</section>
+<div class="lightbox" id="lb">
+  <button class="lb-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+  <button class="lb-prev" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>
+  <div><img id="lbImg" alt=""><p id="lbCap"></p></div>
+  <button class="lb-next" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+</div>
+<footer id="site-footer"></footer>
+<script>
+startPage(async () => {
+  const albums = await DB.list("albums", { order: "date", asc: false });
+  const photos = await DB.list("photos", { order: "created_at", asc: false });
+  let shown = [], idx = 0;
+  const tabs = document.getElementById("tabs"), grid = document.getElementById("grid");
+  if (!photos.length) { grid.outerHTML = `<div class="empty"><i class="fa-regular fa-images"></i>${t("no_photos")}</div>`; return; }
+  tabs.innerHTML = `<button class="active" data-a="">${t("all_albums")} (${photos.length})</button>` +
+    albums.map(a => `<button data-a="${a.id}">${esc(tf(a, "title"))} (${photos.filter(p => p.album_id === a.id).length})</button>`).join("");
+  function show(aid) {
+    shown = aid ? photos.filter(p => p.album_id === aid) : photos;
+    grid.innerHTML = shown.map((p, i) => `<figure data-i="${i}"><img loading="lazy" src="${esc(p.url)}" alt="${esc(tf(p, "caption"))}">${tf(p, "caption") ? `<figcaption>${esc(tf(p, "caption"))}</figcaption>` : ""}</figure>`).join("");
+  }
+  tabs.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    tabs.querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b)); show(b.dataset.a);
+  });
+  const lb = document.getElementById("lb");
+  const open = i => { idx = (i + shown.length) % shown.length; document.getElementById("lbImg").src = shown[idx].url; document.getElementById("lbCap").textContent = tf(shown[idx], "caption"); lb.classList.add("open"); };
+  grid.addEventListener("click", e => { const f = e.target.closest("figure"); if (f) open(+f.dataset.i); });
+  lb.querySelector(".lb-close").onclick = () => lb.classList.remove("open");
+  lb.querySelector(".lb-prev").onclick = () => open(idx - 1);
+  lb.querySelector(".lb-next").onclick = () => open(idx + 1);
+  lb.addEventListener("click", e => { if (e.target === lb) lb.classList.remove("open"); });
+  document.addEventListener("keydown", e => { if (!lb.classList.contains("open")) return; if (e.key === "Escape") lb.classList.remove("open"); if (e.key === "ArrowRight") open(idx + 1); if (e.key === "ArrowLeft") open(idx - 1); });
+  show("");
+});
+</script>
+</body>
+</html>

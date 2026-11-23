@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تواصل معنا | Contact — Feek El Hayah</title>
+<meta name="description" content="كورال فيك الحياة — Feek El Hayah Choir, Alexandria">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<section class="page-hero"><div class="container"><h1 data-i18n="contact_title"></h1><p data-i18n="contact_sub"></p></div></section>
+<section class="section">
+  <div class="container grid grid-2" style="align-items:start">
+    <div class="card">
+      <ul class="contact-list" id="info"></ul>
+      <h3 style="margin-top:22px;color:var(--plum-700)" data-i18n="follow_us"></h3>
+      <div id="soc"></div>
+    </div>
+    <form class="card" id="form" novalidate>
+      <div class="form-grid">
+        <div><label class="req" data-i18n="your_name"></label><input name="full_name" required maxlength="80"></div>
+        <div><label data-i18n="your_phone"></label><input name="phone" inputmode="tel" dir="ltr" maxlength="20"></div>
+        <div class="full"><label data-i18n="your_email"></label><input name="email" type="email" dir="ltr" maxlength="120"></div>
+        <div class="full"><label class="req" data-i18n="message"></label><textarea name="message" required maxlength="1500"></textarea></div>
+        <div class="full"><button class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="send"></span></button></div>
+      </div>
+    </form>
+  </div>
+  <div class="container" id="mapBox"></div>
+</section>
+<footer id="site-footer"></footer>
+<script>
+startPage(async (s) => {
+  const wa = (s.whatsapp || "").replace(/\D/g, "");
+  const waIntl = wa.startsWith("0") ? "2" + wa : wa;
+  const items = [
+    s.email && ["fa-solid fa-envelope", t("email"), `<a href="mailto:${esc(s.email)}" dir="ltr">${esc(s.email)}</a>`],
+    s.phone && ["fa-solid fa-phone", t("phone"), `<a href="tel:${esc(s.phone)}" dir="ltr">${esc(s.phone)}</a>`],
+    wa && ["fa-brands fa-whatsapp", t("whatsapp"), `<a href="https://wa.me/${waIntl}" target="_blank" rel="noopener" dir="ltr">${esc(s.whatsapp)}</a>`],
+    tf(s, "address") && ["fa-solid fa-location-dot", t("address"), esc(tf(s, "address"))],
+    tf(s, "rehearsals") && ["fa-solid fa-clock", t("rehearsals"), nl2br(tf(s, "rehearsals"))]
+  ].filter(Boolean);
+  document.getElementById("info").innerHTML = items.map(([i, l, v]) => `<li><i class="${i}"></i><div><small>${l}</small>${v}</div></li>`).join("");
+  document.getElementById("soc").innerHTML = socialIcons(s, "socials dark");
+  const m = (s.map_url || "").match(/src="([^"]+)"/); const mapSrc = m ? m[1] : s.map_url;
+  if (mapSrc && /^https:\/\/(www\.)?google\.[a-z.]+\/maps/.test(mapSrc)) document.getElementById("mapBox").innerHTML = `<iframe class="map" loading="lazy" src="${esc(mapSrc)}"></iframe>`;
+
+  const form = document.getElementById("form");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const el = form.elements;
+    if (!el.full_name.value.trim() || !el.message.value.trim()) return toast(t("required"), "err");
+    form.querySelector("button").disabled = true;
+    try {
+      await DB.insert("messages", { full_name: el.full_name.value.trim(), phone: el.phone.value.trim(), email: el.email.value.trim(), message: el.message.value.trim(), is_read: false }, { returning: false });
+      form.innerHTML = `<div class="done-box"><i class="fa-solid fa-circle-check" style="font-size:3rem;color:var(--ok)"></i><h3>${t("message_sent")}</h3></div>`;
+    } catch (err) { console.error(err); toast(t("error"), "err"); form.querySelector("button").disabled = false; }
+  });
+});
+</script>
+</body>
+</html>

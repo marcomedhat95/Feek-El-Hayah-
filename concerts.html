@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الحفلات والتذاكر | Concerts — Feek El Hayah</title>
+<meta name="description" content="كورال فيك الحياة — Feek El Hayah Choir, Alexandria">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<section class="page-hero"><div class="container"><h1 data-i18n="concerts_title"></h1></div></section>
+
+<section class="section">
+  <div class="container" id="list"><p class="empty" data-i18n="loading"></p></div>
+</section>
+
+<section class="section alt">
+  <div class="container" style="max-width:640px">
+    <div class="section-title"><h2 data-i18n="check_booking"></h2></div>
+    <form class="card form-grid" id="checkForm">
+      <div><label data-i18n="booking_code"></label><input name="code" required placeholder="FH-XXXXXX" dir="ltr"></div>
+      <div><label data-i18n="your_phone"></label><input name="phone" required inputmode="tel" dir="ltr"></div>
+      <div class="full"><button class="btn btn-primary" data-i18n="check"></button></div>
+      <div class="full" id="checkResult"></div>
+    </form>
+  </div>
+</section>
+
+<footer id="site-footer"></footer>
+<script src="assets/js/concert-utils.js"></script>
+<script src="assets/js/booking.js"></script>
+</body>
+</html>

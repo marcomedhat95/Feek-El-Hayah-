@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>من نحن | About — Feek El Hayah</title>
+<meta name="description" content="كورال فيك الحياة — Feek El Hayah Choir, Alexandria">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<section class="page-hero"><div class="container"><h1 data-i18n="about_title"></h1><p data-i18n="site_tag"></p></div></section>
+
+<section class="section">
+  <div class="container split">
+    <div>
+      <div class="section-title" style="text-align:start"><h2 data-i18n="our_story"></h2></div>
+      <div class="lead" id="story"></div>
+    </div>
+    <div class="about-visual" id="aboutVisual"><img class="logo" src="assets/img/logo.png" alt=""></div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="container">
+    <div class="section-title"><h2 data-i18n="our_mission"></h2></div>
+    <p class="lead" style="text-align:center;max-width:760px;margin:auto;font-size:1.25rem" id="mission"></p>
+    <div class="grid grid-3" id="stats" style="margin-top:40px"></div>
+  </div>
+</section>
+
+<section class="section" id="teamSec">
+  <div class="container">
+    <div class="section-title"><h2 data-i18n="our_team"></h2></div>
+    <div class="grid grid-4" id="team"></div>
+  </div>
+</section>
+
+<footer id="site-footer"></footer>
+<script>
+startPage(async (s) => {
+  document.getElementById("story").innerHTML = tf(s, "about").split("\n").filter(Boolean).map(p => `<p>${esc(p)}</p>`).join("");
+  document.getElementById("mission").textContent = tf(s, "mission");
+  if (s.about_photo) document.getElementById("aboutVisual").innerHTML = `<img class="photo" src="${esc(s.about_photo)}" alt="">`;
+  document.getElementById("stats").innerHTML = [
+    ["fa-solid fa-calendar-check", s.since || "2010", "stat_since"],
+    ["fa-solid fa-church", s.churches || "", "stat_churches"],
+    ["fa-solid fa-hands-praying", "♪", "stat_service"]
+  ].map(([i, v, k]) => `<div class="card feature"><i class="${i}"></i><b>${esc(v)}</b><span>${t(k)}</span></div>`).join("");
+  const team = await DB.list("members", { order: "sort", asc: true });
+  if (!team.length) document.getElementById("teamSec").hidden = true;
+  document.getElementById("team").innerHTML = team.map(m => `
+    <div class="card member">
+      <div class="avatar">${m.photo_url ? `<img src="${esc(m.photo_url)}" alt="">` : `<i class="fa-solid fa-user"></i>`}</div>
+      <b>${esc(tf(m, "name"))}</b><br><small>${esc(tf(m, "role"))}</small>
+    </div>`).join("");
+});
+</script>
+</body>
+</html>

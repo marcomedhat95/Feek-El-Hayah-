@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>انضم للكورال | Join — Feek El Hayah</title>
+<meta name="description" content="كورال فيك الحياة — Feek El Hayah Choir, Alexandria">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<section class="page-hero"><div class="container"><h1 data-i18n="join_title"></h1><p data-i18n="join_sub"></p></div></section>
+<section class="section">
+  <div class="container" style="max-width:860px" id="wrap">
+    <div class="card" id="rulesCard" style="margin-bottom:24px" hidden><h3 style="color:var(--plum-700)"><i class="fa-solid fa-list-check"></i> <span data-i18n="audition_rules"></span></h3><div id="rules"></div></div>
+    <form class="card form-grid" id="form" novalidate>
+      <div><label class="req" data-i18n="your_name"></label><input name="full_name" required maxlength="80"></div>
+      <div><label class="req" data-i18n="your_phone"></label><input name="phone" required inputmode="tel" dir="ltr" maxlength="20"></div>
+      <div><label data-i18n="your_email"></label><input name="email" type="email" dir="ltr" maxlength="120"></div>
+      <div><label class="req" data-i18n="age"></label><input name="age" type="number" min="10" max="80" required></div>
+      <div><label class="req" data-i18n="gender"></label>
+        <select name="gender" required><option value=""></option><option value="male" data-i18n="male"></option><option value="female" data-i18n="female"></option></select></div>
+      <div><label class="req" data-i18n="voice_type"></label>
+        <select name="voice_type" required><option value=""></option><option value="soprano" data-i18n="v_soprano"></option><option value="alto" data-i18n="v_alto"></option><option value="tenor" data-i18n="v_tenor"></option><option value="bass" data-i18n="v_bass"></option><option value="unknown" data-i18n="v_unknown"></option></select></div>
+      <div><label class="req" data-i18n="church"></label><input name="church" required maxlength="120"></div>
+      <div><label data-i18n="plays_instrument"></label><input name="instrument" maxlength="80"></div>
+      <div class="full"><label data-i18n="experience"></label><textarea name="experience" maxlength="800"></textarea></div>
+      <div class="full"><label data-i18n="why_join"></label><textarea name="why" maxlength="800"></textarea></div>
+      <div class="full"><label data-i18n="recording"></label><input name="recording" type="file" accept="audio/*,video/*"><div class="hint" data-i18n="recording_hint"></div></div>
+      <div class="full"><button class="btn btn-gold"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="submit_application"></span></button></div>
+    </form>
+  </div>
+</section>
+<footer id="site-footer"></footer>
+<script>
+startPage(async (s) => {
+  const rules = tf(s, "audition_rules");
+  if (rules) { document.getElementById("rulesCard").hidden = false; document.getElementById("rules").innerHTML = nl2br(rules); }
+  const form = document.getElementById("form");
+  if (s.auditions_open === false || s.auditions_open === "false") {
+    form.outerHTML = `<div class="card empty"><i class="fa-solid fa-door-closed"></i>${t("auditions_closed")}</div>`; return;
+  }
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const el = form.elements, btn = form.querySelector("button");
+    for (const n of ["full_name", "phone", "age", "gender", "voice_type", "church"]) if (!el[n].value.trim()) { el[n].focus(); return toast(t("required"), "err"); }
+    if (!validPhone(el.phone.value)) return toast(t("invalid_phone"), "err");
+    const file = el.recording.files[0];
+    if (file && file.size > 10 * 1024 * 1024) return toast(t("file_too_big"), "err");
+    btn.disabled = true;
+    try {
+      let recording_path = "";
+      if (file) recording_path = (await DB.upload("auditions", file)).path;
+      await DB.insert("auditions", {
+        full_name: el.full_name.value.trim(), phone: el.phone.value.trim(), email: el.email.value.trim(), age: parseInt(el.age.value, 10),
+        gender: el.gender.value, voice_type: el.voice_type.value, church: el.church.value.trim(), instrument: el.instrument.value.trim(),
+        experience: el.experience.value.trim(), why: el.why.value.trim(), recording_path, status: "new", admin_notes: ""
+      }, { returning: false });
+      form.outerHTML = `<div class="card done-box"><i class="fa-solid fa-circle-check" style="font-size:3rem;color:var(--ok)"></i><h3>${t("application_done")}</h3></div>`;
+    } catch (err) { console.error(err); toast(t("error"), "err"); btn.disabled = false; }
+  });
+});
+</script>
+</body>
+</html>
